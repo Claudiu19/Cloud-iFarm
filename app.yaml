@@ -1,0 +1,22 @@
+runtime: python
+env: flex
+entrypoint: gunicorn -b :$PORT main:app
+
+runtime_config:
+  python_version: 3
+
+manual_scaling:
+  instances: 1
+
+resources:
+  cpu: 1
+  memory_gb: 0.5
+  disk_size_gb: 10
+
+env_variables:
+  GOOGLE_APPLICATION_CREDENTIALS: 'cloud_creds.json'
+  CLOUD_SQL_CONNECTION_NAME: 'ifarm-278213:europe-west1:ifarm'
+  DB_USER: 'root'
+  DB_PASS: 'ryK25ywdbxD9qlkj'
+  DB_NAME: 'iFarmDB'
+  DB_PUBLIC_IP: '34.78.179.250'

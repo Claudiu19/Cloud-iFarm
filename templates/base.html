@@ -1,0 +1,13 @@
+<!doctype html>
+<head>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <div class="categoriesContainer" id="categoriesContainer">
+        {% for cat in categories %}
+            <a href='{{"/categories?cat-id=" + cat.cat_id.__str__()}}'>{{cat.ro_cat_name}}</a>
+        {% endfor %}
+    </div>
+    {% block content %}
+    {% endblock %}
+</body>
