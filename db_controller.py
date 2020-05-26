@@ -295,6 +295,16 @@ def delete_ad(ad_id, user_id):
         return False
 
 
+def search_by_tags(tags):
+    ads = get_ads()
+    relevant_ads = []
+    for tag in tags:
+        for ad in ads:
+            if tag in ad["tags"] and ad not in relevant_ads:
+                relevant_ads.append(ad)
+    return relevant_ads
+
+
 # API keys
 def create_api_keys_table():
     with db.connect() as conn:
