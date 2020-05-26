@@ -71,7 +71,7 @@ def create_confirmed_account():
         )
 
 
-def create_session_token():
+def create_session_token_table():
     with db.connect() as conn:
         conn.execute(
             "CREATE TABLE IF NOT EXISTS session_tokens ("
@@ -95,9 +95,9 @@ def create_user(email, password, phone_number, name, latitude, longitude, trial,
         conn.execute(cmd_add_user, email=email, password=pbkdf2_sha256.hash(password), phone_number=phone_number, name=name, latitude=latitude, longitude=longitude, trial=trial)
         user_id = conn.execute("LAST_INSERT_ID()").fetchall()[0][0]
         if company:
-            conn.execute(cmd_add_company, cui=pbkdf2_sha256.hash(cui), user_id=user_id)
+            conn.execute(cmd_add_company, cui=cui, user_id=user_id)
         else:
-            conn.execute(cmd_add_person, cnp=pbkdf2_sha256.hash(cnp), user_id=user_id)
+            conn.execute(cmd_add_person, cnp=cnp, user_id=user_id)
         return user_id
 
 
@@ -146,6 +146,19 @@ def check_session_token(session_token):
                 return user_id
     else:
         return 0
+
+
+def login_user(email):
+    cmd_get_user = sqlalchemy.text("SELECT user_id, email, password FROM users WHERE email = :email")
+    if Utils.check_email_format(email):
+        with db.connect() as conn:
+            rows = conn.execute(cmd_get_user, email=email)
+            if len(rows) == 0:
+                return {}
+            else:
+                return {"email": email, "hashed_pass": rows[0][2], "user_id": rows[0][1]} # pentru verificarea parolei: pbkdf2_sha256.verify(entered_password, hashed_password)
+    else:
+        return {}
 
 
 # Categories
@@ -331,5 +344,3 @@ def get_user_of_key(api_key):
     except:
         error_client.report_exception()
         return 0
-
-

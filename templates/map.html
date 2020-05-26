@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simple Map</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      #map_container{
+        height: 50%;
+        width: 50%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+      <script>
+      var map;
+      var latitude;
+      var longitude;
+      var zoom;
+      var markers = [];
+
+      function setMapOnAll(map) {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].setMap(map);
+        }
+      }
+
+      function deleteAllMarkers(){
+        setMapOnAll(null);
+        markers = []
+      }
+
+      function placeMarker(position, map) {
+        deleteAllMarkers()
+        var marker = new google.maps.Marker({
+            position: position,
+            map: map
+        });
+        markers.push(marker);
+        map.panTo(position);
+      }
+
+      function setCenter(){
+        placeMarker({lat: latitude, lng: longitude}, map)
+        map.setZoom(zoom)
+      }
+
+      function setCoords(position){
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+        zoom = 18;
+        setCenter()
+      }
+
+      function getCurrentLocation() {
+        if(navigator.geolocation) {
+           navigator.geolocation.getCurrentPosition(setCoords, function(){
+               latitude = 46.0858678;
+               longitude = 23.3415486;
+               zoom = 6;
+               setCenter();
+           });
+        }
+        else{
+           latitude = 46.0858678;
+           longitude = 23.3415486;
+           zoom = 6;
+           setCenter();
+        }
+      }
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 46.0858678, lng: 23.3415486},
+          zoom: 8
+        });
+        map.addListener('click', function(e) {
+            placeMarker(e.latLng, map);
+        });
+        getCurrentLocation();
+      }
+
+      function getMarkerCoords(){
+        var coords = {latitude: markers[0].getPosition().lat(), longitude: markers[0].getPosition.long()}
+        alert(coords)
+      }
+    </script>
+  </head>
+  <body>
+  <div id="map_container">
+    <div id="map"></div>
+  </div>
+    <script>
+      var map;
+      var latitude;
+      var longitude;
+      var zoom;
+      var markers = [];
+
+      function setMapOnAll(map) {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].setMap(map);
+        }
+      }
+
+      function deleteAllMarkers(){
+        setMapOnAll(null);
+        markers = []
+      }
+
+      function placeMarker(position, map) {
+        deleteAllMarkers()
+        var marker = new google.maps.Marker({
+            position: position,
+            map: map
+        });
+        markers.push(marker);
+        map.panTo(position);
+      }
+
+      function setCenter(){
+        placeMarker({lat: latitude, lng: longitude}, map)
+        map.setZoom(zoom)
+      }
+
+      function setCoords(position){
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+        zoom = 18;
+        setCenter()
+      }
+
+      function getCurrentLocation() {
+        if(navigator.geolocation) {
+           navigator.geolocation.getCurrentPosition(setCoords, function(){
+               latitude = 46.0858678;
+               longitude = 23.3415486;
+               zoom = 6;
+               setCenter();
+           });
+        }
+        else{
+           latitude = 46.0858678;
+           longitude = 23.3415486;
+           zoom = 6;
+           setCenter();
+        }
+      }
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 46.0858678, lng: 23.3415486},
+          zoom: 8
+        });
+        map.addListener('click', function(e) {
+            placeMarker(e.latLng, map);
+        });
+        getCurrentLocation();
+      }
+
+      function getMarkerCoords(){
+        var coords = {latitude: markers[0].getPosition().lat(), longitude: markers[0].getPosition().lng()}
+        console.log(coords)
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD20FI6Z3N72tQU1ya6_65WBBU_i413mq0&callback=initMap"
+    async defer></script>
+  <button onclick="getMarkerCoords()">Click</button>
+  </body>
+</html>
