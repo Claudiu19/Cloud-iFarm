@@ -410,3 +410,23 @@ def get_user_by_id(id_user):
     except:
         error_client.report_exception()
         return None
+    
+    
+def get_user_by_phone(phone):
+    try:
+        command = sqlalchemy.text("SELECT id, email, password, phone_number, name, latitude, longitude"
+                                  ", date_joined, confirmed, trial "
+                                  " from users WHERE phone_number=:phone")
+        with db.connect() as conn:
+            rows = conn.execute(command, phone=phone)
+            if rows.rowcount == 0:
+                return None
+            else:
+                row = rows.fetchone()
+                user = {'id': row[0], 'email': row[1], 'password': row[2], 'phone_number': row[3],
+                        'name': row[4], 'latitude': row[5], 'longitude': row[6], 'date_joined': row[7],
+                        'confirmed': row[8], 'trial': row[9]}
+                return user
+    except:
+        error_client.report_exception()
+        return None
