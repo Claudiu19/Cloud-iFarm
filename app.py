@@ -78,33 +78,42 @@ def register():
         elif check_phone_number_format(phone) is False:
             msg = 'Invalid phone number!'
         else:
-            if 'trial' in request.form:
-                create_user(email, password, phone, email, None, None, True, None, None, None)
-                msg = 'You have successfully registered!'
-            else:
-                key = request.form['key']
-                person_type = request.form['personType']
-                cnp = request.form['CNP']
-                cui = request.form['CUI']
-                name = request.form['name']
-                if check_keys_format(key) is False:
-                    msg = 'Invalid key!'
-                elif person_type == 'pf':
-                    if check_cnp_format(cnp) is False:
-                        msg = 'Invalid CNP!'
-                    elif not name:
-                        msg = 'Invalid name!'
-                    else:
+            person_type = request.form['personType']
+            cnp = request.form['CNP']
+            cui = request.form['CUI']
+            name = request.form['name']
+            if person_type == 'pf':
+                if check_cnp_format(cnp) is False:
+                    msg = 'Invalid CNP!'
+                elif not name:
+                    msg = 'Invalid name!'
+                else:
+                    if 'trial' in request.form:
                         create_user(email, password, phone, name, None, None, False, None, None, cnp)
                         msg = 'You have successfully registered!'
-                elif person_type == 'pj':
-                    if check_cui_format(cui) is False:
-                        msg = 'Invalid CUI!'
-                    elif not name:
-                        msg = 'Invalid name!'
                     else:
+                        key = request.form['key']
+                        if check_keys_format(key) is False:
+                            msg = 'Invalid key!'
+                        else:
+                            create_user(email, password, phone, name, None, None, False, None, None, cnp)
+                            msg = 'You have successfully registered!'
+            elif person_type == 'pj':
+                if check_cui_format(cui) is False:
+                    msg = 'Invalid CUI!'
+                elif not name:
+                    msg = 'Invalid name!'
+                else:
+                    if 'trial' in request.form:
                         create_user(email, password, phone, name, None, None, False, name, cui, None)
                         msg = 'You have successfully registered!'
+                    else:
+                        key = request.form['key']
+                        if check_keys_format(key) is False:
+                            msg = 'Invalid key!'
+                        else:
+                            create_user(email, password, phone, name, None, None, False, name, cui, None)
+                            msg = 'You have successfully registered!'
     elif request.method == 'POST':
         msg = 'Please fill out the form!'
     return render_template('register.html', msg=msg)
@@ -128,6 +137,12 @@ def home():
     if 'loggedin' in session:
         return render_template('home.html', name=session['name'])
     return redirect(url_for('login'))
+
+
+@app.route('/ask-for-key')
+def ask_for_key():
+    account = get_user_by_id(session['id'])
+    return render_template('my_account.html', account=account)
 
 
 if __name__ == "__main__":  # on running python app.py
