@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Register</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<!--		&lt;!&ndash; Latest compiled and minified CSS &ndash;&gt;-->
+<!--<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">-->
+
+<!--&lt;!&ndash; Optional theme &ndash;&gt;-->
+<!--<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">-->
+
+<!--&lt;!&ndash; Latest compiled and minified JavaScript &ndash;&gt;-->
+<!--<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>-->
+	</head>
+	<body>
+		<div class="register">
+			<h1>Register</h1>
+			<div class="links">
+				<a href="{{ url_for('login') }}">Login</a>
+				<a href="{{ url_for('register') }}" class="active">Register</a>
+			</div>
+			<form action="{{ url_for('register') }}" method="post" autocomplete="off" id="formRegister">
+				<label for="email">
+					<i class="fas fa-envelope"></i>
+				</label>
+				<input type="email" name="email" placeholder="Email" id="email" required>
+				<label for="password">
+					<i class="fas fa-lock"></i>
+				</label>
+				<input type="password" name="password" placeholder="Password" id="password" required>
+				<label for="phone">Phone</label>
+				<input type="text" name="phone" placeholder="07XXXXXXXX" id="phone" required>
+				<div style="width:90%;display:flex;margin-bottom: 20px;">
+					<label for="trial" style="width:200px;height:25px;">This will be a Trial account?</label>
+					<input type="checkbox" name="trial" placeholder="" id="trial" style="width:20px;height:20px;"
+						   onchange="onCheckedChangeTrial(this)" checked>
+				</div>
+				<label for="key" id="lblKey">
+					<i class="fas fa-key"></i>
+				</label>
+				<input type="text" name="key" placeholder="Key" id="key" >
+				<div style="width:90%;display:flex;margin-bottom: 20px;" id="divPersonType">
+					<div>
+					  <input type="radio" id="pf" name="personType" value="pf" class="personTypeCls">
+					  <label for="pf" style="width:100px;display:inline-block;height:25px;padding-left:14px;">Individual</label>
+					</div>
+					<div style="margin-left:100px;">
+					  <input type="radio" id="pj" name="personType" value="pj" class="personTypeCls">
+					  <label for="pj" style="width:100px;display:inline-block;height:25px;padding-left:14px;">Company</label>
+					</div>
+				</div>
+				<label for="CNP" id="lblCNP">CNP</label>
+				<input type="text" name="CNP" placeholder="CNP" id="CNP" >
+
+				<label for="CUI" id="lblCUI" style="display:none;">CUI</label>
+				<input type="text" name="CUI" placeholder="CUI" id="CUI"  style="display:none;">
+				<label for="name" id="lblName">
+					<i id="lblImgUser" class="fas fa-user"></i>
+				</label>
+				<input type="text" name="name" placeholder="Name" id="name" >
+				<div class="msg">{{ msg }}</div>
+				<input type="submit" value="Register">
+			</form>
+		</div>
+
+	<script type="text/javascript">
+
+		function onCheckedChangeTrial(element){
+			if(element.checked){
+				hideExtraField();
+			}else{
+				showExtraFields();
+			}
+		}
+
+		function hideExtraField(){
+			$('#lblKey').hide();
+			$('#key').hide();
+			$('#divPersonType').hide();
+			$('#lblCNP').hide();
+			$('#CNP').hide();
+			$('#lblCUI').hide();
+			$('#CUI').hide();
+			$('#lblName').hide();
+			$('#name').hide();
+		}
+
+		function showExtraFields(){
+			$('#lblKey').show();
+			$('#key').show();
+			$('#divPersonType').show();
+			$('#lblName').show();
+			$('#name').show();
+			var typePers = $('input[name=personType]:checked', '#formRegister').val();
+			if(typePers === 'pf'){
+				$('#lblCNP').show();
+				$('#CNP').show();
+				$('#lblCUI').hide();
+				$('#CUI').hide();
+				$('#lblImgUser').removeClass('fa-briefcase').addClass('fa-user');
+			}else{
+				$('#lblCNP').hide();
+				$('#CNP').hide();
+				$('#lblCUI').show();
+				$('#CUI').show();
+				$('#lblImgUser').removeClass('fa-user').addClass('fa-briefcase');
+			}
+		}
+
+		$('.personTypeCls').click(function () {
+        	var typePers = $('input[name=personType]:checked', '#formRegister').val();
+        	if(typePers === 'pf'){
+        		$('#lblCNP').show();
+				$('#CNP').show();
+				$('#lblCUI').hide();
+				$('#CUI').hide();
+				$('#lblImgUser').removeClass('fa-briefcase').addClass('fa-user');
+        	}else{
+				$('#lblCNP').hide();
+				$('#CNP').hide();
+				$('#lblCUI').show();
+				$('#CUI').show();
+				$('#lblImgUser').removeClass('fa-user').addClass('fa-briefcase');
+        	}
+    	});
+
+    	$(document).ready(function () {
+    		$('input:radio[name=personType]').filter('[value=pf]').prop('checked', true);
+    		$('#trial').trigger('change');
+    	});
+
+	</script>
+	</body>
+</html>

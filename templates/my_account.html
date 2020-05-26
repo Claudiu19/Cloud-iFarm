@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+
+{% block title %}My Account{% endblock %}
+
+{% block content %}
+<h2>My Account</h2>
+<div>
+    <p>Your account details are below:</p>
+    <table>
+        <tr>
+            <td>Name:</td>
+            <td>{{ account['name'] }}</td>
+        </tr>
+        <tr>
+            <td>Password:</td>
+            <td>{{ account['password'] }}</td>
+        </tr>
+        <tr>
+            <td>Email:</td>
+            <td>{{ account['email'] }}</td>
+        </tr>
+    </table>
+</div>
+{% endblock %}
