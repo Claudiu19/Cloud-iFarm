@@ -27,8 +27,8 @@ def create_users_table():
             "  name varchar(255) NOT NULL,"
             "  latitude varchar(255),"
             "  longitude varchar(255),"
-            "  date_joined DATETIME NOT NULL,"
-            "  confirmed DATETIME NOT NULL,"
+            "  date_joined DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+            "  confirmed DATETIME NULL,"
             "  trial BOOLEAN NOT NULL,"
             "  PRIMARY KEY(id)"
             ")"
@@ -93,7 +93,7 @@ def create_user(email, password, phone_number, name, latitude, longitude, trial,
                                      )
     with db.connect() as conn:
         conn.execute(cmd_add_user, email=email, password=pbkdf2_sha256.hash(password), phone_number=phone_number, name=name, latitude=latitude, longitude=longitude, trial=trial)
-        user_id = conn.execute("LAST_INSERT_ID()").fetchall()[0][0]
+        user_id = conn.execute("SELECT LAST_INSERT_ID()").fetchall()[0][0]
         if company:
             conn.execute(cmd_add_company, cui=cui, user_id=user_id)
         else:
@@ -124,10 +124,11 @@ def confirm_account(account_key):
     if Utils.check_keys_format(account_key):
         with db.connect() as conn:
             rows = conn.execute(cmd_get_id, account_key=account_key)
-            if len(rows) == 0:
+            if rows.rowcount == 0:
                 return 0
             else:
-                user_id = rows[0][0]
+                row = rows.fetchone()
+                user_id = row[0]
                 conn.execute("UPDATE users SET confirmed='" + Utils.get_mysql_date(datetime.datetime.now()) + "' WHERE id=" + user_id)
                 return user_id
     else:
@@ -139,24 +140,31 @@ def check_session_token(session_token):
     if Utils.check_keys_format(session_token):
         with db.connect() as conn:
             rows = conn.execute(cmd_get_id, account_key=session_token)
-            if len(rows) == 0:
+            if rows.rowcount == 0:
                 return 0
             else:
-                user_id = rows[0][0]
+                row = rows.fetchone()
+                user_id = row[0]
                 return user_id
     else:
         return 0
 
 
 def login_user(email):
-    cmd_get_user = sqlalchemy.text("SELECT user_id, email, password FROM users WHERE email = :email")
+    cmd_get_user = sqlalchemy.text("SELECT id, email, password FROM users WHERE email=:email")
     if Utils.check_email_format(email):
         with db.connect() as conn:
             rows = conn.execute(cmd_get_user, email=email)
-            if len(rows) == 0:
+            if rows.rowcount == 0:
                 return {}
             else:
-                return {"email": email, "hashed_pass": rows[0][2], "user_id": rows[0][1]} # pentru verificarea parolei: pbkdf2_sha256.verify(entered_password, hashed_password)
+                row = rows.fetchone()
+                user = {}
+                user['email'] = email
+                user['hashed_pass'] = row[2]
+                user['user_id'] = row[0]
+                return user
+                # return {"email": email, "hashed_pass": rows[0][2], "user_id": rows[0][1]} # pentru verificarea parolei: pbkdf2_sha256.verify(entered_password, hashed_password)
     else:
         return {}
 
@@ -333,10 +341,11 @@ def get_api_key(user_id):
         command = sqlalchemy.text("SELECT api_key from api_keys WHERE user_id=:user_id")
         with db.connect() as conn:
             rows = conn.execute(command, user_id=user_id)
-            if len(rows) == 0:
+            if rows.rowcount == 0:
                 return ""
             else:
-                return rows[0][0]
+                row = rows.fetchone()
+                return row[0]
     except:
         error_client.report_exception()
         return ""
@@ -347,10 +356,51 @@ def get_user_of_key(api_key):
         command = sqlalchemy.text("SELECT user_id from api_keys WHERE api_key=:api_key")
         with db.connect() as conn:
             rows = conn.execute(command, api_key=api_key)
-            if len(rows) == 0:
+            if rows.rowcount == 0:
                 return 0
             else:
-                return int(rows[0][0])
+                row = rows.fetchone()
+                return int(row[0])
     except:
         error_client.report_exception()
         return 0
+
+
+def get_user_by_email_pass(email, password):
+    try:
+        command = sqlalchemy.text("SELECT id, email, password, phone_number, name, latitude, longitude"
+                                  ", date_joined, confirmed, trial "
+                                  " from users WHERE email=:email AND password=:password")
+        with db.connect() as conn:
+            rows = conn.execute(command, email=email, password=password)
+            if rows.rowcount == 0:
+                return None
+            else:
+                row = rows.fetchone()
+                user = {'id': row[0], 'email': row[1], 'password': row[2], 'phone_number': row[3],
+                        'name': row[4], 'latitude': row[5], 'longitude': row[6], 'date_joined': row[7],
+                        'confirmed': row[8], 'trial': row[9]}
+                return user
+    except:
+        error_client.report_exception()
+        return None
+
+
+def get_user_by_id(id_user):
+    try:
+        command = sqlalchemy.text("SELECT id, email, password, phone_number, name, latitude, longitude"
+                                  ", date_joined, confirmed, trial "
+                                  " from users WHERE id=:id")
+        with db.connect() as conn:
+            rows = conn.execute(command, id=id_user)
+            if rows.rowcount == 0:
+                return None
+            else:
+                row = rows.fetchone()
+                user = {'id': row[0], 'email': row[1], 'password': row[2], 'phone_number': row[3],
+                        'name': row[4], 'latitude': row[5], 'longitude': row[6], 'date_joined': row[7],
+                        'confirmed': row[8], 'trial': row[9]}
+                return user
+    except:
+        error_client.report_exception()
+        return None
