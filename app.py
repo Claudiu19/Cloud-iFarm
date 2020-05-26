@@ -10,7 +10,7 @@ app = Flask(__name__)  # create an app instance
 
 @app.route("/")
 def hello():
-    return render_template("ads.html", categories=read_categories(), title="Home", ads=db_controller.get_ads())
+    return render_template("home.html", categories=read_categories(), title="Home", ads=db_controller.get_ads())
 
 
 @app.route("/categories")
@@ -188,14 +188,15 @@ def my_account():
 @app.route('/home')
 def home():
     if 'loggedin' in session:
-        return render_template('home.html', name=session['name'])
+        return render_template('home.html', name=session['name'], categories=read_categories(), title="Home", ads=db_controller.get_ads())
     return redirect(url_for('login'))
 
 
-@app.route('/ask-for-key')
-def ask_for_key():
-    account = get_user_by_id(session['id'])
-    return render_template('my_account.html', account=account)
+@app.route('/send_email_info_key', methods=['POST'])
+def send_email_info_key():
+    api_calls.gmail_api_send_email("emilb200@gmail.com", session['email'], "noreply: iFarm upgrade account",
+         "Hello! Here you can find all the details that you neeed:")
+    return jsonify("ok")
 
 # API routes
 @app.route("/api/ads/<ID>", methods=["GET"])
