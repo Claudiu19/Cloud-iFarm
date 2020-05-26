@@ -151,14 +151,15 @@ def check_session_token(session_token):
 
 
 def login_user(email):
-    cmd_get_user = sqlalchemy.text("SELECT user_id, email, password FROM users WHERE email = :email")
+    cmd_get_user = sqlalchemy.text("SELECT id, email, password FROM users WHERE email = :email")
     if Utils.check_email_format(email):
         with db.connect() as conn:
             rows = conn.execute(cmd_get_user, email=email)
-            if len(rows) == 0:
+            if rows.rowcount == 0:
                 return {}
             else:
-                return {"email": email, "hashed_pass": rows[0][2], "user_id": rows[0][1]} # pentru verificarea parolei: pbkdf2_sha256.verify(entered_password, hashed_password)
+                row = rows.fetchone()
+                return {"email": email, "hashed_pass": row[2], "user_id": row[0]} # pentru verificarea parolei: pbkdf2_sha256.verify(entered_password, hashed_password)
     else:
         return {}
 
@@ -276,6 +277,7 @@ def get_ads_by_category(cat_id):
                         "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
         return ads
 
+
 def insert_ad(user_id, name, description, category_id, tags_string_dict, image_path, status): #tags_string_dict = json.dumps({"tags": [tag1, tag2...]})
     command = sqlalchemy.text(
         "INSERT INTO ads(user_id, name, description, category_id, tags, date_created, image_path, status)"
@@ -348,10 +350,11 @@ def get_api_key(user_id):
         command = sqlalchemy.text("SELECT api_key from api_keys WHERE user_id=:user_id")
         with db.connect() as conn:
             rows = conn.execute(command, user_id=user_id)
-            if len(rows) == 0:
+            if rows.rowcount == 0:
                 return ""
             else:
-                return rows[0][0]
+                row = rows.fetchone()
+                return row[0]
     except:
         error_client.report_exception()
         return ""
