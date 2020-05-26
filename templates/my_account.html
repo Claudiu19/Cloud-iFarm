@@ -3,22 +3,63 @@
 {% block title %}My Account{% endblock %}
 
 {% block content %}
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+</head>
+<script type="text/javascript">
+    function onClickSendKeyInfoEmail(btn){
+         $.ajax(
+         {
+              type : 'POST',
+              url : "/send_email_info_key",
+              contentType: "application/json;charset=UTF-8",
+              dataType:'json',
+              data    : { },
+              success : function(data)
+              {
+                  if(data){
+                     $('#idMsgSendKeyInfo').html('You will receive the email in a moment.');
+                  }
+              },
+               error: function(){
+                    $('#idMsgSendKeyInfo').html('Email not sent. Please try again.' +
+                     '<br/>If the error continues, send us manually an email to emilb200@gmail.com');
+               }
+         });
+    }
+</script>
 <h2>My Account</h2>
 <div>
     <p>Your account details are below:</p>
-    <table>
+    <table style="margin-bottom:10px;">
         <tr>
             <td>Name:</td>
             <td>{{ account['name'] }}</td>
         </tr>
         <tr>
-            <td>Password:</td>
-            <td>{{ account['password'] }}</td>
-        </tr>
-        <tr>
             <td>Email:</td>
             <td>{{ account['email'] }}</td>
         </tr>
+        <tr>
+            <td>Phone:</td>
+            <td>{{ account['phone_number'] }}</td>
+        </tr>
+        <tr>
+            <td>Latitude:</td>
+            <td>{{ account['latitude'] }}</td>
+            <td>Longitude:</td>
+            <td>{{ account['longitude'] }}</td>
+        </tr>
     </table>
+
+    {% if account['trial'] %}
+        <p>If you want to know how to activate full account, click on the button below
+            and you will receive an email with details.</p>
+        <button id="btnSendEmailKeyInfo" onclick="onClickSendKeyInfoEmail(this)">Send me the details</button>
+    {% endif %}
+
+    <div id="idMsgSendKeyInfo"></div>
+
 </div>
 {% endblock %}
+
