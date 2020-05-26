@@ -42,6 +42,7 @@
 
 				<label for="CUI" id="lblCUI" style="display:none;">CUI</label>
 				<input type="text" name="CUI" placeholder="CUI" id="CUI"  style="display:none;">
+				<div class="msg" id="msgErrorCNPCUI" style="width:90%;text-align:center;margin-bottom:15px;"></div>
 				<label for="name" id="lblName">
 					<i id="lblImgUser" class="fas fa-user"></i>
 				</label>
@@ -86,12 +87,12 @@
 			if(typePers === 'pf'){
 				if(!$('#CNP').val()){
 					allGood = false;
-					$("#msgError").html("Please enter CNP");
+					$("#msgErrorCNPCUI").html("Please enter CNP");
 				}
 			}else if(typePers === 'pj'){
 				if(!$('#CUI').val()){
 					allGood = false;
-					$("#msgError").html("Please enter CUI");
+					$("#msgErrorCNPCUI").html("Please enter CUI");
 				}
 			}
 
