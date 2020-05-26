@@ -27,8 +27,8 @@ def create_users_table():
             "  name varchar(255) NOT NULL,"
             "  latitude varchar(255),"
             "  longitude varchar(255),"
-            "  date_joined DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
-            "  confirmed DATETIME NULL,"
+            "  date_joined DATETIME NOT NULL,"
+            "  confirmed DATETIME NOT NULL,"
             "  trial BOOLEAN NOT NULL,"
             "  PRIMARY KEY(id)"
             ")"
@@ -93,7 +93,7 @@ def create_user(email, password, phone_number, name, latitude, longitude, trial,
                                      )
     with db.connect() as conn:
         conn.execute(cmd_add_user, email=email, password=pbkdf2_sha256.hash(password), phone_number=phone_number, name=name, latitude=latitude, longitude=longitude, trial=trial)
-        user_id = conn.execute("SELECT LAST_INSERT_ID()").fetchall()[0][0]
+        user_id = conn.execute("LAST_INSERT_ID()").fetchone()[0]
         if company:
             conn.execute(cmd_add_company, cui=cui, user_id=user_id)
         else:
@@ -151,20 +151,14 @@ def check_session_token(session_token):
 
 
 def login_user(email):
-    cmd_get_user = sqlalchemy.text("SELECT id, email, password FROM users WHERE email=:email")
+    cmd_get_user = sqlalchemy.text("SELECT user_id, email, password FROM users WHERE email = :email")
     if Utils.check_email_format(email):
         with db.connect() as conn:
             rows = conn.execute(cmd_get_user, email=email)
-            if rows.rowcount == 0:
+            if len(rows) == 0:
                 return {}
             else:
-                row = rows.fetchone()
-                user = {}
-                user['email'] = email
-                user['hashed_pass'] = row[2]
-                user['user_id'] = row[0]
-                return user
-                # return {"email": email, "hashed_pass": rows[0][2], "user_id": rows[0][1]} # pentru verificarea parolei: pbkdf2_sha256.verify(entered_password, hashed_password)
+                return {"email": email, "hashed_pass": rows[0][2], "user_id": rows[0][1]} # pentru verificarea parolei: pbkdf2_sha256.verify(entered_password, hashed_password)
     else:
         return {}
 
@@ -234,39 +228,52 @@ def create_ads_table():
 def get_ads():
     with db.connect() as conn:
         rows = conn.execute(
-            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number"
+            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name"
             "FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1"
         ).fetchall()
         ads = []
         for row in rows:
             ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3], "tags": json.loads(row[4])["tags"], "date_created": row[5],
-                        "image_path": row[6], "contact_email": row[7], "contact_phone": row[8]})
+                        "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
         return ads
 
 
 def get_ads_by_user(user_id):
     with db.connect() as conn:
         rows = conn.execute(
-            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number"
+            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name"
             "FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.user_id = " + str(user_id)
         ).fetchall()
         ads = []
         for row in rows:
             ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3], "tags": json.loads(row[4])["tags"], "date_created": row[5],
-                        "image_path": row[6], "contact_email": row[7], "contact_phone": row[8]})
+                        "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
+        return ads
+
+
+def get_ad_by_id(ad_id):
+    with db.connect() as conn:
+        rows = conn.execute(
+            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name"
+            "FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.id=" + str(ad_id)
+        ).fetchall()
+        ads = []
+        for row in rows:
+            ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3], "tags": json.loads(row[4])["tags"], "date_created": row[5],
+                        "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
         return ads
 
 
 def get_ads_by_category(cat_id):
     with db.connect() as conn:
         rows = conn.execute(
-            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number"
+            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name"
             "FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.category_id = " + str(cat_id)
         ).fetchall()
         ads = []
         for row in rows:
             ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3], "tags": json.loads(row[4])["tags"], "date_created": row[5],
-                        "image_path": row[6], "contact_email": row[7], "contact_phone": row[8]})
+                        "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
         return ads
 
 def insert_ad(user_id, name, description, category_id, tags_string_dict, image_path, status): #tags_string_dict = json.dumps({"tags": [tag1, tag2...]})
@@ -341,11 +348,10 @@ def get_api_key(user_id):
         command = sqlalchemy.text("SELECT api_key from api_keys WHERE user_id=:user_id")
         with db.connect() as conn:
             rows = conn.execute(command, user_id=user_id)
-            if rows.rowcount == 0:
+            if len(rows) == 0:
                 return ""
             else:
-                row = rows.fetchone()
-                return row[0]
+                return rows[0][0]
     except:
         error_client.report_exception()
         return ""

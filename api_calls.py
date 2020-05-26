@@ -113,8 +113,7 @@ def translate_text(text: str = "", lang: str = "en-US", target: str = "ro"):
             resp = []
             Utils.log_string("translation_log", "Translated text \"" + text + "\" from \"" + lang + "\" to \"" + target + "\".")
             for translation in response.translations:
-                file_name = text_to_speech(translation.translated_text, target)
-                resp.append({"translation": translation.translated_text, "file_name": file_name})
+                resp.append({"translation": translation.translated_text})
             return resp
     except Exception:
         error_client.report_exception()

@@ -1,4 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+
+import api_calls
+import db_controller
 from db_controller import *
 from Utils import *
 
@@ -7,32 +10,57 @@ app = Flask(__name__)  # create an app instance
 
 @app.route("/")
 def hello():
-    return render_template("homePage.html", categories=read_categories(), title="Home", greeting="Hello World!")
+    return render_template("ads.html", categories=read_categories(), title="Home", ads=db_controller.get_ads())
 
 
 @app.route("/categories")
 def categories():
-    title = ""
-    greeting = ""
     cat_id = request.args['cat-id']
     if try_int(cat_id):
         cat_id = int(cat_id)
         category = get_category_by_id(cat_id)
         if len(category) == 0:
-            title = "No such category"
-            greeting = "No such category"
+            title = "There is no such category"
+            return render_template("ads.html", categories=read_categories(), title=title, ads=[])
         else:
-            title = category[0]["ro_cat_name"]
-            greeting = category[0]["ro_cat_name"]
-    all_categories = read_categories()
-    return render_template("homePage.html", categories=all_categories, title=title, greeting=greeting)
+            title = category[0]["en_cat_name"]
+            return render_template("ads.html", categories=read_categories(), title=title, ads=db_controller.get_ads_by_category(cat_id))
+    else:
+        return render_template('404.html', title="Not Found")
 
 
+@app.route("/confirm/<acc_key>")
+def confirm_account(acc_key):
+    if check_keys_format(acc_key):
+        user_id = confirm_account(acc_key)
+        if user_id != 0:
+            return render_template('login.html', msg="Your account has been confirmed!")
+        else:
+            return render_template('login.html', msg="The link is not a correct one. Please try again more carefully.")
+    else:
+        return render_template('login.html', msg="The link is not a correct one. Please try again more carefully.")
 
-@app.route("/<name>")
-def hello_name(name):
-    return "Hello " + name
 
+@app.route("/translate/<target>")
+def translate(target):
+    if request.method == "POST" and "text" in request.get_json(force=True):
+        if target == "ro":
+            lang = "en-US"
+        else:
+            lang = "ro"
+        resp = api_calls.translate_text(request.get_json(force=True)["text"], lang, target)
+        return jsonify({"Status Code": "200", "translated_text": resp})
+    else:
+        return jsonify({"Status Code": "400", "message": "Bad Request"})
+
+
+@app.route("/text_to_speech")
+def text_to_speech():
+    if request.method == "POST" and "text" in request.get_json(force=True):
+        file_name = text_to_speech(request.get_json(force=True)["text"], "en-US")
+        return jsonify({"Status Code": "200", "audio_src_file": file_name})
+    else:
+        return jsonify({"Status Code": "400", "message": "Bad Request"})
 
 #added
 @app.route('/login', methods=['GET', 'POST'])
@@ -89,15 +117,25 @@ def register():
                     msg = 'Invalid name!'
                 else:
                     if 'trial' in request.form:
-                        create_user(email, password, phone, name, None, None, False, None, None, cnp)
-                        msg = 'You have successfully registered!'
+                        user_id = create_user(email, password, phone, name, None, None, False, None, None, cnp)
+                        msg = 'You have successfully registered! Please check your email for a confirmation email!'
+                        key = create_account_key(user_id=user_id)
+                        api_calls.gmail_api_send_email("emilb200@gmail.com", email, "noreply: iFarm confirmation email",
+                                                       "Thank you for creating an account on our platform!\nOpen this link in your browser to generate your account:"
+                                                       "https://ifarm-278213.ey.r.appspot.com/confirm/" + key)
+
                     else:
                         key = request.form['key']
                         if check_keys_format(key) is False:
                             msg = 'Invalid key!'
                         else:
-                            create_user(email, password, phone, name, None, None, False, None, None, cnp)
-                            msg = 'You have successfully registered!'
+                            user_id = create_user(email, password, phone, name, None, None, False, None, None, cnp)
+                            msg = 'You have successfully registered! Please check your email for a confirmation email!'
+                            key = create_account_key(user_id=user_id)
+                            api_calls.gmail_api_send_email("emilb200@gmail.com", email,
+                                                           "noreply: iFarm confirmation email",
+                                                           "Thank you for creating an account on our platform!\nOpen this link in your browser to generate your account:"
+                                                           "https://ifarm-278213.ey.r.appspot.com/confirm/" + key)
             elif person_type == 'pj':
                 if check_cui_format(cui) is False:
                     msg = 'Invalid CUI!'
@@ -105,18 +143,28 @@ def register():
                     msg = 'Invalid name!'
                 else:
                     if 'trial' in request.form:
-                        create_user(email, password, phone, name, None, None, False, name, cui, None)
-                        msg = 'You have successfully registered!'
+                        user_id = create_user(email, password, phone, name, None, None, False, name, cui, None)
+                        msg = 'You have successfully registered! Please check your email for a confirmation email!'
+                        key = create_account_key(user_id=user_id)
+                        api_calls.gmail_api_send_email("emilb200@gmail.com", email, "noreply: iFarm confirmation email",
+                                                       "Thank you for creating an account on our platform!\nOpen this link in your browser to generate your account:"
+                                                       "https://ifarm-278213.ey.r.appspot.com/confirm/" + key)
                     else:
                         key = request.form['key']
                         if check_keys_format(key) is False:
                             msg = 'Invalid key!'
                         else:
-                            create_user(email, password, phone, name, None, None, False, name, cui, None)
-                            msg = 'You have successfully registered!'
+                            user_id = create_user(email, password, phone, name, None, None, False, name, cui, None)
+                            msg = 'You have successfully registered! Please check your email for a confirmation email!'
+                            key = create_account_key(user_id=user_id)
+                            api_calls.gmail_api_send_email("emilb200@gmail.com", email,
+                                                           "noreply: iFarm confirmation email",
+                                                           "Thank you for creating an account on our platform!\nOpen this link in your browser to generate your account:"
+                                                           "https://ifarm-278213.ey.r.appspot.com/confirm/" + key)
     elif request.method == 'POST':
         msg = 'Please fill out the form!'
     return render_template('register.html', msg=msg)
+
 
 @app.route('/logout')
 def logout():
@@ -124,6 +172,7 @@ def logout():
     session['id'] = None
     session['name'] = None
     return redirect(url_for('login'))
+
 
 @app.route('/my-account')
 def my_account():
@@ -143,6 +192,61 @@ def home():
 def ask_for_key():
     account = get_user_by_id(session['id'])
     return render_template('my_account.html', account=account)
+
+# API routes
+@app.route("/api/ads/<ID>", methods=["GET"])
+def generic_ads(ID):
+    create_ads_table()
+    data = get_ads_by_user(ID)
+    return jsonify(data)
+
+
+@app.route("/api/self_ads", methods=["GET"])
+def specified_ads():
+    key = request.args.get('api_key')
+    user = get_user_of_key(key)
+    data = get_ads_by_user(user)
+    return jsonify(data)
+
+
+@app.route("/api/post_ad", methods=["POST"])
+def post_ad():
+    key = request.args.get('api_key')
+    description = request.args.get('description')
+    name = request.args.get('title')
+    category_id = request.args.get('category_id')
+    tags_string_dict = request.args.get('tags_string_dict')
+    status = 1
+    user_id = get_user_of_key(key)
+    image_path = request.args.get('image_path')
+    insert_ad(user_id, name, description, category_id, tags_string_dict, image_path, status)
+    return jsonify({"Status": "200", "Message": "Ad created succesfully!"})
+
+
+@app.route("/api/disable_ad", methods=["PUT"])
+def disable_ad():
+    key = request.args.get('api_key')
+    post_id = request.args.get('posting_id')
+    status = request.args.get('status')
+    user_id = get_user_of_key(key)
+    update_ad_status(post_id, status, user_id)
+    return jsonify({"Status": "200", "Message": "Status Updated!"})
+
+
+# Error handlers
+@app.errorhandler(500)
+def server_error(e):
+    log_string("iFarm_log", 'An error occurred during a request.')
+    return """
+    An internal error occurred: <pre>{}</pre>
+    See logs for full stacktrace.
+    """.format(e), 500
+
+
+@app.errorhandler(404)
+def server_error(e):
+    log_string("iFarm_log", 'Accessed resource that doesnt exist!')
+    return render_template("404.html")
 
 
 if __name__ == "__main__":  # on running python app.py

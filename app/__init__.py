@@ -1,6 +1,9 @@
+import datetime
+
 import sqlalchemy
 import os
 from google.cloud import error_reporting, logging
+
 
 db_user = "root" #os.environ.get("DB_USER")
 db_pass = "ryK25ywdbxD9qlkj" #os.environ.get("DB_PASS")
@@ -12,8 +15,8 @@ db = sqlalchemy.create_engine('mysql+pymysql://' + db_user + ':' + db_pass + '@'
 
 s_acc = "cloud_creds.json"
 error_client = error_reporting.Client.from_service_account_json(s_acc)
+project_id = "ifarm-278213"
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
-gmail_api_key = "AIzaSyDFlXyb7YkMADs1KLJfB9TesmHiEUr0aPA"
-gmail_api_client_id = "247564144410-vqh50fca77fgck0s35vpcpthj075j21c.apps.googleusercontent.com"
-gmail_api_client_secret = "n8gkR0-QfrBOdI45k-HHBSLe"
+gmail_creds = "gmail_creds.json"
 open_api_key = "qdJxqz27DQap3zxQSTpo_q75-qgrzHyiPCYrpj99yMEnxWUS_g"
