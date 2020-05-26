@@ -229,8 +229,9 @@ def create_ads_table():
 def get_ads():
     with db.connect() as conn:
         rows = conn.execute(
-            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name"
-            "FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1"
+            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created"
+            ", A.image_path, U.email, U.phone_number, U.name"
+            " FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1"
         ).fetchall()
         ads = []
         for row in rows:
