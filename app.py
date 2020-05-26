@@ -122,15 +122,24 @@ def register():
                     msg = 'Invalid name!'
                 else:
                     if 'trial' in request.form:
-                        create_user(email, password, phone, name, latitude, longitude, True, None, None, cnp)
+                        user_id = create_user(email, password, phone, name, latitude, longitude, True, None, None, cnp)
                         msg = 'You have successfully registered!'
+                        key = create_account_key(user_id=user_id)
+                        api_calls.gmail_api_send_email("emilb200@gmail.com", email, "noreply: iFarm confirmation email",
+                                                       "Thank you for creating an account on our platform!\nOpen this link in your browser to generate your account:"
+                                                       "https://ifarm-278213.ey.r.appspot.com/confirm/" + key)
                     else:
                         key = request.form['key']
                         if check_keys_format(key) is False:
                             msg = 'Invalid key!'
                         else:
-                            create_user(email, password, phone, name, latitude, longitude, False, None, None, cnp)
+                            user_id = create_user(email, password, phone, name, latitude, longitude, False, None, None, cnp)
                             msg = 'You have successfully registered!'
+                            key = create_account_key(user_id=user_id)
+                            api_calls.gmail_api_send_email("emilb200@gmail.com", email,
+                                                           "noreply: iFarm confirmation email",
+                                                           "Thank you for creating an account on our platform!\nOpen this link in your browser to generate your account:"
+                                                           "https://ifarm-278213.ey.r.appspot.com/confirm/" + key)
             elif person_type == 'pj':
                 if check_cui_format(cui) is False:
                     msg = 'Invalid CUI!'
@@ -138,14 +147,23 @@ def register():
                     msg = 'Invalid name!'
                 else:
                     if 'trial' in request.form:
-                        create_user(email, password, phone, name, latitude, longitude, True, name, cui, None)
+                        user_id = create_user(email, password, phone, name, latitude, longitude, True, name, cui, None)
                         msg = 'You have successfully registered!'
+                        key = create_account_key(user_id=user_id)
+                        api_calls.gmail_api_send_email("emilb200@gmail.com", email, "noreply: iFarm confirmation email",
+                                                       "Thank you for creating an account on our platform!\nOpen this link in your browser to generate your account:"
+                                                       "https://ifarm-278213.ey.r.appspot.com/confirm/" + key)
                     else:
                         key = request.form['key']
                         if check_keys_format(key) is False:
                             msg = 'Invalid key!'
                         else:
-                            create_user(email, password, phone, name, latitude, longitude, False, name, cui, None)
+                            user_id = create_user(email, password, phone, name, latitude, longitude, False, name, cui, None)
+                            key = create_account_key(user_id=user_id)
+                            api_calls.gmail_api_send_email("emilb200@gmail.com", email,
+                                                           "noreply: iFarm confirmation email",
+                                                           "Thank you for creating an account on our platform!\nOpen this link in your browser to generate your account:"
+                                                           "https://ifarm-278213.ey.r.appspot.com/confirm/" + key)
                             msg = 'You have successfully registered!'
     elif request.method == 'POST':
         msg = 'Please fill out the form!'
