@@ -22,7 +22,7 @@
 				<a href="{{ url_for('login') }}">Login</a>
 				<a href="{{ url_for('register') }}" class="active">Register</a>
 			</div>
-			<form action="{{ url_for('register') }}" method="post" autocomplete="off" id="formRegister">
+			<form action="{{ url_for('register') }}" method="post" autocomplete="off" id="formRegister" onsubmit="return submitRegister(event)">
 				<label for="email">
 					<i class="fas fa-envelope"></i>
 				</label>
@@ -33,40 +33,62 @@
 				<input type="password" name="password" placeholder="Password" id="password" required>
 				<label for="phone">Phone</label>
 				<input type="text" name="phone" placeholder="07XXXXXXXX" id="phone" required>
-				<div style="width:90%;display:flex;margin-bottom: 20px;">
-					<label for="trial" style="width:200px;height:25px;">This will be a Trial account?</label>
-					<input type="checkbox" name="trial" placeholder="" id="trial" style="width:20px;height:20px;"
-						   onchange="onCheckedChangeTrial(this)" checked>
-				</div>
-				<label for="key" id="lblKey">
-					<i class="fas fa-key"></i>
-				</label>
-				<input type="text" name="key" placeholder="Key" id="key" >
-				<div style="width:90%;display:flex;margin-bottom: 20px;" id="divPersonType">
+				<div style="width:90%;display:flex;margin-bottom: 20px;margin-left:40px;" id="divPersonType">
 					<div>
 					  <input type="radio" id="pf" name="personType" value="pf" class="personTypeCls">
 					  <label for="pf" style="width:100px;display:inline-block;height:25px;padding-left:14px;">Individual</label>
 					</div>
-					<div style="margin-left:100px;">
+					<div style="margin-left:50px;">
 					  <input type="radio" id="pj" name="personType" value="pj" class="personTypeCls">
 					  <label for="pj" style="width:100px;display:inline-block;height:25px;padding-left:14px;">Company</label>
 					</div>
 				</div>
 				<label for="CNP" id="lblCNP">CNP</label>
-				<input type="text" name="CNP" placeholder="CNP" id="CNP" >
+				<input type="text" name="CNP" placeholder="CNP" id="CNP">
 
 				<label for="CUI" id="lblCUI" style="display:none;">CUI</label>
 				<input type="text" name="CUI" placeholder="CUI" id="CUI"  style="display:none;">
 				<label for="name" id="lblName">
 					<i id="lblImgUser" class="fas fa-user"></i>
 				</label>
-				<input type="text" name="name" placeholder="Name" id="name" >
-				<div class="msg">{{ msg }}</div>
+				<input type="text" name="name" placeholder="Name" id="name" required>
+				<div style="width:90%;display:flex;margin-bottom: 20px;">
+					<label for="trial" style="width:200px;height:25px;">This will be a trial account?</label>
+					<input type="checkbox" name="trial" placeholder="" id="trial" style="width:20px;height:20px;margin-left:20px;"
+						   onchange="onCheckedChangeTrial(this)" checked>
+				</div>
+				<label for="key" id="lblKey">
+					<i class="fas fa-key"></i>
+				</label>
+				<input type="text" name="key" placeholder="Key" id="key" >
+				<div class="msg" id="msgError">{{ msg }}</div>
 				<input type="submit" value="Register">
 			</form>
 		</div>
 
 	<script type="text/javascript">
+
+		function submitRegister(e){
+			var allGood = true;
+			var typePers = $('input[name=personType]:checked', '#formRegister').val();
+			if(typePers === 'pf'){
+				if(!$('#CNP').val()){
+					allGood = false;
+					$("#msgError").html("Please enter CNP");
+				}
+			}else if(typePers === 'pj'){
+				if(!$('#CUI').val()){
+					allGood = false;
+					$("#msgError").html("Please enter CUI");
+				}
+			}
+
+			if(!allGood){
+				e.preventDefault();
+  				return false;
+			}
+
+		}
 
 		function onCheckedChangeTrial(element){
 			if(element.checked){
@@ -79,35 +101,11 @@
 		function hideExtraField(){
 			$('#lblKey').hide();
 			$('#key').hide();
-			$('#divPersonType').hide();
-			$('#lblCNP').hide();
-			$('#CNP').hide();
-			$('#lblCUI').hide();
-			$('#CUI').hide();
-			$('#lblName').hide();
-			$('#name').hide();
 		}
 
 		function showExtraFields(){
 			$('#lblKey').show();
 			$('#key').show();
-			$('#divPersonType').show();
-			$('#lblName').show();
-			$('#name').show();
-			var typePers = $('input[name=personType]:checked', '#formRegister').val();
-			if(typePers === 'pf'){
-				$('#lblCNP').show();
-				$('#CNP').show();
-				$('#lblCUI').hide();
-				$('#CUI').hide();
-				$('#lblImgUser').removeClass('fa-briefcase').addClass('fa-user');
-			}else{
-				$('#lblCNP').hide();
-				$('#CNP').hide();
-				$('#lblCUI').show();
-				$('#CUI').show();
-				$('#lblImgUser').removeClass('fa-user').addClass('fa-briefcase');
-			}
 		}
 
 		$('.personTypeCls').click(function () {
