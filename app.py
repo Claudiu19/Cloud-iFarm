@@ -15,6 +15,44 @@ app = Flask(__name__)  # create an app instance
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+@app.route("/api/ads/<ID>", methods=["GET"])
+def generic_ads(ID):
+    create_ads_table()
+    data = get_ads_by_user(ID)
+    return jsonify(data)
+
+
+@app.route("/api/self_ads", methods=["GET"])
+def specified_ads():
+    key = request.args.get('api_key')
+    user = get_user_of_key(key)
+    data = get_ads_by_user(user)
+    return jsonify(data)
+
+
+@app.route("/api/post_ad", methods=["POST"])
+def post_ad():
+    key = request.args.get('api_key')
+    description = request.args.get('description')
+    name = request.args.get('title')
+    category_id = request.args.get('category_id')
+    tags_string_dict = request.args.get('tags_string_dict')
+    status = 1
+    user_id = get_user_of_key(key)
+    image_path = request.args.get('image_path')
+    insert_ad(user_id, name, description, category_id, tags_string_dict, image_path, status)
+    return jsonify({"Status": "200", "Message": "Ad created succesfully!"})
+
+
+@app.route("/api/disable_ad", methods=["PUT"])
+def disable_ad():
+    key = request.args.get('api_key')
+    post_id = request.args.get('posting_id')
+    status = request.args.get('status')
+    user_id = get_user_of_key(key)
+    update_ad_status(post_id, status, user_id)
+    return jsonify({"Status": "200", "Message": "Status Updated!"})
+
 @app.route("/")
 def hello():
     ads = db_controller.get_ads()
