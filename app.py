@@ -340,7 +340,7 @@ def ad_by_id(ID):
             ad['image_path'] = None
         else:
             ad['image_path'] = '\\.\\' + ad['image_path']
-    return render_template('ad_details.html', account=account, ad=ad)
+    return render_template('add_details.html', account=account, ad=ad)
 
 
 if __name__ == "__main__":  # on running python app.py
