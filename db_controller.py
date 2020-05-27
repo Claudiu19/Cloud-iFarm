@@ -235,42 +235,62 @@ def get_ads():
         ).fetchall()
         ads = []
         for row in rows:
-            ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3], "tags": json.loads(row[4])["tags"], "date_created": row[5],
+            ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3],
+                        "tags": row[4], "date_created": row[5],
                         "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
+            # ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3], "tags": json.loads(row[4])["tags"], "date_created": row[5],
+            #             "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
         return ads
 
 
 def get_ads_by_user(user_id):
     with db.connect() as conn:
         rows = conn.execute(
-            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name"
-            "FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.user_id = " + str(user_id)
+            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created"
+            ", A.image_path, U.email, U.phone_number, U.name"
+            " FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.user_id = " + str(user_id)
         ).fetchall()
         ads = []
         for row in rows:
-            ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3], "tags": json.loads(row[4])["tags"], "date_created": row[5],
+            ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3],
+                        "tags": row[4], "date_created": row[5],
                         "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
+            # ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3], "tags": json.loads(row[4])["tags"], "date_created": row[5],
+            #             "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
         return ads
 
 
 def get_ad_by_id(ad_id):
     with db.connect() as conn:
+        # rows = conn.execute(
+        #     "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name"
+        #     " FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.id=" + str(ad_id)
+        # ).fetchall()
+        # ads = []
+        # for row in rows:
+        #     ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3],
+        #                 "tags": row[4], "date_created": row[5],
+        #                 "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
+        #     # ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3], "tags": json.loads(row[4])["tags"], "date_created": row[5],
+        #     #             "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
+        # return ads
+
         rows = conn.execute(
             "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name"
-            "FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.id=" + str(ad_id)
-        ).fetchall()
-        ads = []
-        for row in rows:
-            ads.append({"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3], "tags": json.loads(row[4])["tags"], "date_created": row[5],
-                        "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]})
-        return ads
+            " FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.id=" + str(ad_id)
+        )
+        row = rows.fetchone()
+        row_final = {"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3],
+                     "tags": row[4], "date_created": row[5],
+                     "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]}
+        return row_final
 
 
 def get_ads_by_category(cat_id):
     with db.connect() as conn:
         rows = conn.execute(
             "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name"
-            "FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.category_id = " + str(cat_id)
+            " FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.category_id = " + str(cat_id)
         ).fetchall()
         ads = []
         for row in rows:
@@ -282,7 +302,7 @@ def get_ads_by_category(cat_id):
 def insert_ad(user_id, name, description, category_id, tags_string_dict, image_path, status): #tags_string_dict = json.dumps({"tags": [tag1, tag2...]})
     command = sqlalchemy.text(
         "INSERT INTO ads(user_id, name, description, category_id, tags, date_created, image_path, status)"
-        "VALUES(:user_id, :name, :description, :category_id, :tags_string_dict, :date_created, :image_path, :status)"
+        " VALUES(:user_id, :name, :description, :category_id, :tags_string_dict, :date_created, :image_path, :status)"
     )
     with db.connect() as conn:
         conn.execute(command, user_id=user_id, name=name, description=description, category_id=category_id, tags_string_dict=tags_string_dict,
