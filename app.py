@@ -15,44 +15,6 @@ app = Flask(__name__)  # create an app instance
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-@app.route("/api/ads/<ID>", methods=["GET"])
-def generic_ads(ID):
-    create_ads_table()
-    data = get_ads_by_user(ID)
-    return jsonify(data)
-
-
-@app.route("/api/self_ads", methods=["GET"])
-def specified_ads():
-    key = request.args.get('api_key')
-    user = get_user_of_key(key)
-    data = get_ads_by_user(user)
-    return jsonify(data)
-
-
-@app.route("/api/post_ad", methods=["POST"])
-def post_ad():
-    key = request.args.get('api_key')
-    description = request.args.get('description')
-    name = request.args.get('title')
-    category_id = request.args.get('category_id')
-    tags_string_dict = request.args.get('tags_string_dict')
-    status = 1
-    user_id = get_user_of_key(key)
-    image_path = request.args.get('image_path')
-    insert_ad(user_id, name, description, category_id, tags_string_dict, image_path, status)
-    return jsonify({"Status": "200", "Message": "Ad created succesfully!"})
-
-
-@app.route("/api/disable_ad", methods=["PUT"])
-def disable_ad():
-    key = request.args.get('api_key')
-    post_id = request.args.get('posting_id')
-    status = request.args.get('status')
-    user_id = get_user_of_key(key)
-    update_ad_status(post_id, status, user_id)
-    return jsonify({"Status": "200", "Message": "Status Updated!"})
-
 @app.route("/")
 def hello():
     ads = db_controller.get_ads()
@@ -91,7 +53,7 @@ def confirm_account(acc_key):
         return render_template('login.html', msg="The link is not a correct one. Please try again more carefully.")
 
 
-@app.route("/translate/<target>")
+@app.route("/translate/<target>", methods=["POST"])
 def translate(target):
     if request.method == "POST" and "text" in request.get_json(force=True):
         if target == "ro":
@@ -99,18 +61,30 @@ def translate(target):
         else:
             lang = "ro"
         resp = api_calls.translate_text(request.get_json(force=True)["text"], lang, target)
-        return jsonify({"Status Code": "200", "translated_text": resp})
+        return jsonify({"statusCode": "200", "translated_text": resp})
     else:
-        return jsonify({"Status Code": "400", "message": "Bad Request"})
+        return jsonify({"statusCode": "400", "message": "Bad Request"})
 
 
 @app.route("/text_to_speech")
 def text_to_speech():
     if request.method == "POST" and "text" in request.get_json(force=True):
         file_name = text_to_speech(request.get_json(force=True)["text"], "en-US")
-        return jsonify({"Status Code": "200", "audio_src_file": file_name})
+        return jsonify({"statusCode": "200", "audio_src_file": file_name})
     else:
-        return jsonify({"Status Code": "400", "message": "Bad Request"})
+        return jsonify({"statusCode": "400", "message": "Bad Request"})
+
+
+@app.route("/view_ad/<ID>")
+def view_generic_ads(ID):
+    ad = get_ad_by_id(ID)
+    if ad['image_path']:
+        if not path.exists(ad['image_path']):
+            ad['image_path'] = None
+        else:
+            ad['image_path'] = '\\.\\' + ad['image_path']
+    return render_template('add_details.html', ad=ad)
+
 
 #added
 @app.route('/login', methods=['GET', 'POST'])
@@ -252,12 +226,28 @@ def home():
     return redirect(url_for('login'))
 
 
+@app.route("/search")
+def search():
+    tags = request.args.get("search").split(" ")
+    ads = db_controller.search_by_tags(tags)
+    for ad in ads:
+        if ad['image_path']:
+            if not path.exists(ad['image_path']):
+                ad['image_path'] = None
+    return render_template("home.html", categories=read_categories(), title="Home", ads=ads)
+
 
 @app.route('/send_email_info_key', methods=['POST'])
 def send_email_info_key():
+    user_id = session["id"]
+    if get_api_key(user_id) == "":
+        key = add_api_key(user_id)
+    else:
+        key = get_api_key(user_id)
     api_calls.gmail_api_send_email("emilb200@gmail.com", session['email'], "noreply: iFarm upgrade account",
-         "Hello! Here you can find all the details that you neeed:")
+         "Hello! This is your iFarm API key: " + key)
     return jsonify("ok")
+
 
 # API routes
 @app.route("/api/ads/<ID>", methods=["GET"])
@@ -313,6 +303,7 @@ def server_error(e):
 def server_error(e):
     log_string("iFarm_log", 'Accessed resource that doesnt exist!')
     return render_template("404.html")
+
 
 @app.route("/create-ad", methods=["POST"])
 def create_ad():

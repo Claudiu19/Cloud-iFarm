@@ -276,13 +276,17 @@ def get_ad_by_id(ad_id):
         # return ads
 
         rows = conn.execute(
-            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name"
+            "SELECT A.id, A.name, A.description, A.category_id, A.tags, A.date_created, A.image_path, U.email, U.phone_number, U.name, U.latitude, U.longitude"
             " FROM ads A LEFT JOIN users U ON A.user_id = U.id WHERE A.status = 1 AND A.id=" + str(ad_id)
         )
         row = rows.fetchone()
         row_final = {"id": row[0], "name": row[1], "description": row[2], "cat_id": row[3],
                      "tags": row[4], "date_created": row[5],
-                     "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9]}
+                     "image_path": row[6], "contact_email": row[7], "contact_phone": row[8], "user_name": row[9], "latitude": row[10], "longitude": row[11]}
+        if row_final["latitude"]:
+            row_final["latitude"] = Decimal(row_final["latitude"])
+        if row_final["longitude"]:
+            row_final["longitude"] = Decimal(row_final["longitude"])
         return row_final
 
 
@@ -335,10 +339,12 @@ def delete_ad(ad_id, user_id):
 
 def search_by_tags(tags):
     ads = get_ads()
+
     relevant_ads = []
     for tag in tags:
         for ad in ads:
-            if tag in ad["tags"] and ad not in relevant_ads:
+            ad_tags = ad["tags"].split(";")
+            if tag in ad_tags and ad not in relevant_ads:
                 relevant_ads.append(ad)
     return relevant_ads
 
@@ -360,10 +366,10 @@ def add_api_key(user_id):
         command = sqlalchemy.text("INSERT INTO api_keys(user_id, api_key) VALUES(:user_id, :api_key)")
         with db.connect() as conn:
             conn.execute(command, user_id=user_id, api_key=key)
-            return True
+            return key
     except:
         error_client.report_exception()
-        return False
+        return ""
 
 
 def get_api_key(user_id):

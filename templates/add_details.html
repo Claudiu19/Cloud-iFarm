@@ -3,8 +3,30 @@
 {% block title %}Ad details{% endblock %}
 
 {% block content %}
+<script>
+    function translateText(language) {
+        var initial_text = document.getElementById('description').innerHTML;
+        var xhr = new XMLHttpRequest();
+        var url="../translate/" + language
+        var data = {"text": initial_text}
+        xhr.open("POST", url)
+        xhr.send(JSON.stringify(data))
+        xhr.onreadystatechange = function () {
+            if (this.readyState == 4) {
+                var res = JSON.parse(xhr.responseText)
+                console.log(res)
+                if(res.statusCode == 200){
+                    document.getElementById('description').innerHTML = res.translated_text[0].translation
 
+                }
+            }
+        };
+       }
+
+</script>
 <h2>{{ ad.name }}</h2>
+<button onclick="translateText('ro')">Translate to Romanian</button>
+<button onclick="translateText('en-US')">Translate to English</button>
 
 <div>
     {% if ad.image_path %}
@@ -12,7 +34,58 @@
     {% endif %}
 
     <h4>Description</h4>
-    <p>{{ ad.description }}</p>
+    <p id="description">{{ ad.description }}</p>
+    <br>
+    {% if ad.phone_number != "" %}
+    <p> Phone Number: {{ad.contact_phone}}</p>
+    {% endif %}
+    <p>Email address: {{ad.contact_email}}</p>
+    <p>Tags: {{ad.tags}}</p>
+    {% if ad.latitude and ad.longitude %}
+    <p>Location:</p>
+    <script>
+      var map;
+      var latitude = {{ad.latitude}};
+      var longitude = {{ad.longitude}};
+      var zoom = 18;
+      var markers = [];
+
+      function placeMarker(position, map) {
+        var marker = new google.maps.Marker({
+            position: position,
+            map: map
+        });
+        markers.push(marker);
+        map.panTo(position);
+      }
+
+      function setCenter(){
+        placeMarker({lat: latitude, lng: longitude}, map)
+        map.setZoom(zoom)
+      }
+
+      function setCoords(position){
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+        zoom = 18;
+        setCenter()
+      }
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: latitude, lng: longitude},
+          zoom: 18
+        });
+        setCenter()
+      }
+     </script>
+    <div id="map_container">
+        <div id="map"></div>
+    </div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD20FI6Z3N72tQU1ya6_65WBBU_i413mq0&callback=initMap"
+    async defer></script>
+    {% endif %}
+
 
 </div>
 

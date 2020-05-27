@@ -145,3 +145,36 @@ body.loggedin {
 	padding: 5px;
 	margin: 0 0 10px 0;
 }
+#map_container{
+    height: 200px;
+    width: 400px;
+}
+#map {
+    height: 100%;  /* The height is 400 pixels */
+    width: 100%;  /* The width is the width of the web page */
+}
+.navtop .search-container {
+  float: right;
+}
+
+.navtop input[type=text] {
+  padding: 6px;
+  margin-top: 8px;
+  font-size: 17px;
+  border: none;
+}
+
+.navtop .search-container button {
+  float: right;
+  padding: 6px 10px;
+  margin-top: 8px;
+  margin-right: 16px;
+  background: #ddd;
+  font-size: 17px;
+  border: none;
+  cursor: pointer;
+}
+
+.navtop .search-container button:hover {
+  background: #ccc;
+}
