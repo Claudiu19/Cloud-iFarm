@@ -22,7 +22,7 @@ def hello():
         if ad['image_path']:
             if not path.exists(ad['image_path']):
                 ad['image_path'] = None
-    return render_template("home.html", categories=read_categories(), title="Home", ads=ads)
+    return render_template("ads.html", categories=read_categories(), title="Home", ads=ads)
 
 
 @app.route("/categories")
@@ -340,7 +340,7 @@ def ad_by_id(ID):
             ad['image_path'] = None
         else:
             ad['image_path'] = '\\.\\' + ad['image_path']
-    return render_template('add_details.html', account=account, ad=ad)
+    return render_template('ad_details.html', account=account, ad=ad)
 
 
 if __name__ == "__main__":  # on running python app.py
