@@ -5,6 +5,14 @@
 {% block content %}
 <head>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet"/>
 </head>
 <script type="text/javascript">
     function onClickSendKeyInfoEmail(btn){
@@ -29,7 +37,15 @@
     }
 </script>
 <h2>My Account</h2>
-<div>
+
+<ul id="tabs" class="nav nav-tabs"  data-tabs="tabs">
+    <li role="presentation" class="active"><a href="#tab1" data-toggle="tab">Details</a></li>
+    <li role="presentation" ><a href="#tab2" data-toggle="tab">My ads</a></li>
+    <li role="presentation" ><a href="#tab3" data-toggle="tab">Create new ad</a></li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane active" id="tab1">
+        <div>
     <p>Your account details are below:</p>
     <table style="margin-bottom:10px;">
         <tr>
@@ -55,11 +71,20 @@
     {% if account['trial'] %}
         <p>If you want to know how to activate full account, click on the button below
             and you will receive an email with details.</p>
-        <button id="btnSendEmailKeyInfo" onclick="onClickSendKeyInfoEmail(this)">Send me the details</button>
+        <button id="btnSendEmailKeyInfo" onclick="onClickSendKeyInfoEmail(this)" class="btn btn-primary">Send me the details</button>
     {% endif %}
 
     <div id="idMsgSendKeyInfo"></div>
 
 </div>
+    </div>
+    <div class="tab-pane" id="tab2">
+        {% include 'my_ads.html' %}
+    </div>
+    <div class="tab-pane" id="tab3">
+        {% include 'create_ad.html' %}
+    </div>
+</div>
 {% endblock %}
+
 
