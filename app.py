@@ -1,16 +1,28 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+import os
+from os import path
 
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import api_calls
 import db_controller
 from db_controller import *
 from Utils import *
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = 'static\images'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)  # create an app instance
 
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route("/")
 def hello():
-    return render_template("home.html", categories=read_categories(), title="Home", ads=db_controller.get_ads())
+    ads = db_controller.get_ads()
+    for ad in ads:
+        if ad['image_path']:
+            if not path.exists(ad['image_path']):
+                ad['image_path'] = None
+    return render_template("home.html", categories=read_categories(), title="Home", ads=ads)
 
 
 @app.route("/categories")
@@ -181,15 +193,26 @@ def logout():
 @app.route('/my-account')
 def my_account():
     account = get_user_by_id(session['id'])
-    return render_template('my_account.html', account=account)
+    ads = get_ads_by_user(session['id'])
+    for ad in ads:
+        if ad['image_path']:
+            if not path.exists(ad['image_path']):
+                ad['image_path'] = None
+    return render_template('my_account.html', account=account, ads=ads, categories=read_categories())
 
 
 # http://localhost:5000/pythinlogin/home - this will be the home page, only accessible for loggedin users
 @app.route('/home')
 def home():
     if 'loggedin' in session:
-        return render_template('home.html', name=session['name'], categories=read_categories(), title="Home", ads=db_controller.get_ads())
+        ads = db_controller.get_ads()
+        for ad in ads:
+            if ad['image_path']:
+                if not path.exists(ad['image_path']):
+                    ad['image_path'] = None
+        return render_template('home.html', name=session['name'], categories=read_categories(), title="Home", ads=ads)
     return redirect(url_for('login'))
+
 
 
 @app.route('/send_email_info_key', methods=['POST'])
@@ -225,7 +248,7 @@ def post_ad():
     user_id = get_user_of_key(key)
     image_path = request.args.get('image_path')
     insert_ad(user_id, name, description, category_id, tags_string_dict, image_path, status)
-    return jsonify({"Status": "200", "Message": "Ad created succesfully!"})
+    redirect(url_for('my_account'))
 
 
 @app.route("/api/disable_ad", methods=["PUT"])
@@ -252,6 +275,43 @@ def server_error(e):
 def server_error(e):
     log_string("iFarm_log", 'Accessed resource that doesnt exist!')
     return render_template("404.html")
+
+@app.route("/create-ad", methods=["POST"])
+def create_ad():
+    user_id = session['id']
+    name = request.form['name']
+    description = request.form['description']
+    category_id = request.form['category']
+    tags_string_dict = request.form['tags']
+    image_path = None
+    status = 1
+
+    if 'file' in request.files:
+        file = request.files['file']
+        if file.filename and file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            image_path = file_path
+            file.save(file_path)
+            insert_ad(user_id, name, description, category_id, tags_string_dict, image_path, status)
+    return redirect(url_for('my_account'))
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/ad/<ID>', methods=["GET"])
+def ad_by_id(ID):
+    account = get_user_by_id(session['id'])
+    ad = get_ad_by_id(ID)
+    if ad['image_path']:
+        if not path.exists(ad['image_path']):
+            ad['image_path'] = None
+        else:
+            ad['image_path'] = '\\.\\' + ad['image_path']
+    return render_template('ad_details.html', account=account, ad=ad)
 
 
 if __name__ == "__main__":  # on running python app.py
