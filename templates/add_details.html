@@ -1,0 +1,19 @@
+{% extends 'layout.html' %}
+
+{% block title %}Ad details{% endblock %}
+
+{% block content %}
+
+<h2>{{ ad.name }}</h2>
+
+<div>
+    {% if ad.image_path %}
+          <img src="{{ ad.image_path}}" style="width:400px;height:400px;">
+    {% endif %}
+
+    <h4>Description</h4>
+    <p>{{ ad.description }}</p>
+
+</div>
+
+{% endblock %}
