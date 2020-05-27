@@ -11,17 +11,19 @@
     <div id="adsContainer" class="adsContainer">
         <script>
             function goToAdPage(id){
-                window.location.href = "/ad/" + id
+                window.location.href = "../ad/" + id;
             }
         </script>
-        {% for ad in ads%}
-            <div class="ad" id="{{ad.id}}" onclick="goToAd(this.id)">
-                <div class = "ad-image">
-                    <img class="ad-image-source" src="{{ad.image_path}}">
+        {% for ad in ads %}
+            <div class="ad" id="{{ad.id}}" onclick="goToAdPage(this.id)">
+                <div class="ad-image">
+                    {% if ad.image_path %}
+                        <img class="ad-image-source" src="{{ad.image_path}}">
+                    {% endif %}
                 </div>
                 <div class = "ad-info">
                     <p class = 'name'>{{ad.name}}</p>
-                    <p class = 'user_name'>{{ad.username}}</p>
+                    <p class = 'user_name'>{{ad.user_name}}</p>
                     <p class = 'date_created'>{{ad.date_created}}</p>
                 </div>
             </div>
