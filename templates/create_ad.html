@@ -1,0 +1,63 @@
+{% block content %}
+    <div>
+        <form action="{{ url_for('create_ad') }}" method="post" enctype="multipart/form-data">
+            <table>
+                <tr>
+                    <td>
+                        <label for="name">Title</label>
+                    </td>
+                    <td>
+                        <input type="text" name="name" id="name" style="width:100%;" class="form-control">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="description">Description</label>
+                    </td>
+                    <td>
+                        <textarea type="text" name="description" id="description" rows="5" cols="80"
+                                  style="width:100%;" class="form-control"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="description">Category</label>
+                    </td>
+                    <td>
+                        <select name="category" id="category" style="width:100%">
+                            {% for categ in categories %}
+                            <option value= "{{categ.cat_id}}" SELECTED>{{categ.en_cat_name}}</option>"
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="tags">Extra tags</label>
+                    </td>
+                    <td>
+                        <input type="text" name="tags" id="tags" style="width:100%;" class="form-control">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="file">Ad image</label>
+                    </td>
+                    <td>
+                        <input type="file" name="file" id="file" class="btn btn-default">
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input type="submit" value="Create ad" class="btn btn-primary" style="width:100%"
+                               style="width:200px;height:50px;margin-top:10px;">
+                    </td>
+                </tr>
+
+            </table>
+        </form>
+    </div>
+<script>
+    $('select').select2({ width: '100%', placeholder: "Select an Option", allowClear: false });
+</script>
+{% endblock %}
